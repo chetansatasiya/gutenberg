@@ -2,7 +2,11 @@
  * External dependencies
  */
 import { get } from 'lodash';
-import { parse, stringify } from 'querystring';
+
+/**
+ * Internal dependencies
+ */
+import { getGutenbergURL, getWPAdminURL } from './utils/url';
 
 export function focusBlock( uid, config ) {
 	return {
@@ -73,12 +77,7 @@ export function savePost( dispatch, postId, edits ) {
 			isNew,
 		} );
 		if ( isNew && window.history.replaceState ) {
-			const [ baseUrl, query ] = window.location.href.split( '?' );
-			const qs = parse( query || '' );
-			const newUrl = baseUrl + '?' + stringify( {
-				...qs,
-				post_id: newPost.id,
-			} );
+			const newUrl = getGutenbergURL( { post_id: newPost.id } );
 			window.history.replaceState( {}, 'Post ' + newPost.id, newUrl );
 		}
 	} ).fail( ( err ) => {
@@ -96,8 +95,11 @@ export function savePost( dispatch, postId, edits ) {
 
 export function trashPost( dispatch, postId, postType ) {
 	new wp.api.models.Post( { id: postId } ).destroy().done( () => {
-		window.location.href = 'edit.php?post_type=' + postType
-			+ '&trashed=1&ids=' + postId;
+		window.location.href = getWPAdminURL( 'edit.php', {
+			post_type: postType,
+			trashed: 1,
+			ids: postId,
+		} );
 	} );
 }
 
